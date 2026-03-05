@@ -34,17 +34,19 @@ def check_guess(guess, secret):
         return "Win", "🎉 Correct!"
 
     try:
+        # Bug fix: messages were inverted — "Too High" should direct player lower,
+        # and "Too Low" should direct player higher.
         if guess > secret:
-            return "Too High", "📈 Go HIGHER!"
+            return "Too High", "📉 Go LOWER!"
         else:
-            return "Too Low", "📉 Go LOWER!"
+            return "Too Low", "📈 Go HIGHER!"
     except TypeError:
         g = str(guess)
         if g == secret:
             return "Win", "🎉 Correct!"
         if g > secret:
-            return "Too High", "📈 Go HIGHER!"
-        return "Too Low", "📉 Go LOWER!"
+            return "Too High", "📉 Go LOWER!"
+        return "Too Low", "📈 Go HIGHER!"
 
 
 def update_score(current_score: int, outcome: str, attempt_number: int):
@@ -93,7 +95,11 @@ if "secret" not in st.session_state:
     st.session_state.secret = random.randint(low, high)
 
 if "attempts" not in st.session_state:
-    st.session_state.attempts = 1
+    # Bug fix: was initialised to 1, which made the display show one fewer
+    # attempt than the player actually had (attempts_left = limit - attempts,
+    # and submit increments attempts before checking, so starting at 1 meant
+    # the counter was already off-by-one before the first guess).
+    st.session_state.attempts = 0
 
 if "score" not in st.session_state:
     st.session_state.score = 0
@@ -132,8 +138,14 @@ with col3:
     show_hint = st.checkbox("Show hint", value=True)
 
 if new_game:
+    # Bug fix: status was never reset, so the st.stop() check below would
+    # immediately halt the page after a win/loss, making new games impossible
+    # without a full page reload. Also: history was not cleared between games,
+    # and the secret range ignored the selected difficulty (hardcoded 1-100).
+    st.session_state.status = "playing"
     st.session_state.attempts = 0
-    st.session_state.secret = random.randint(1, 100)
+    st.session_state.history = []
+    st.session_state.secret = random.randint(low, high)
     st.success("New game started.")
     st.rerun()
 
@@ -155,10 +167,10 @@ if submit:
     else:
         st.session_state.history.append(guess_int)
 
-        if st.session_state.attempts % 2 == 0:
-            secret = str(st.session_state.secret)
-        else:
-            secret = st.session_state.secret
+        # Bug fix: on even attempts the secret was cast to a string, causing
+        # lexicographic comparison in check_guess (e.g. "6" > "50" is True).
+        # This produced wrong hints that made the target appear to shift mid-game.
+        secret = st.session_state.secret
 
         outcome, message = check_guess(guess_int, secret)
 
