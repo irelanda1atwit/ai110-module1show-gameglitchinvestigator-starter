@@ -26,12 +26,21 @@ It wrote the code, ran away, and now the game is unplayable.
 ## 📝 Document Your Experience
 
 - [ ] Describe the game's purpose.
+      - Its a number guessing game with multiple diffuclty settings.
 - [ ] Detail which bugs you found.
+      - Visual bug of hints being backwars
+      - Needed to refesh page when starting new game.
+      - Code had values of numbers that would win or not when wrong when they match lexigraphically.
 - [ ] Explain what fixes you applied.
+      - fixed the logic of < or > of the hint
+      - added code that set the reset value to not be a default.
+      - check literal when checking answers in the code as well and reject.
 
 ## 📸 Demo
 
 - [ ] [Insert a screenshot of your fixed, winning game here]
+
+- See attached PNG files.
 
 ## 🚀 Stretch Features
 
